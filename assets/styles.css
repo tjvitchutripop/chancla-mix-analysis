@@ -1,0 +1,137 @@
+/* Import a Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+/* Default (Light) Variables */
+:root {
+    --bg-color: #ffffff;
+    --sidebar-bg: #f9f9f9;
+    --text-color: #333333;
+    --heading-color: #000000;
+    --border-color: #dddddd;
+    --dropdown-bg: #ffffff;
+    --dropdown-text: #333333;
+    --tag-bg: #f0f0f0;
+    --tag-border: #cccccc;
+    --tag-text: #333333;
+}
+
+/* Dark Mode Variables */
+[data-theme='dark'] {
+    --bg-color: #121212;
+    --sidebar-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --heading-color: #ffffff;
+    --border-color: #333333;
+    --dropdown-bg: #2c2c2c;
+    --dropdown-text: #ffffff;
+    --tag-bg: #3d3d3d;
+    --tag-border: #555555;
+    --tag-text: #eeeeee;
+}
+
+/* Apply globally */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.app-container {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+/* Sidebar styling */
+.sidebar {
+    background-color: var(--sidebar-bg) !important;
+    color: var(--text-color);
+    border-right: 1px solid var(--border-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dash Dropdown Styling */
+.Select-control {
+    background-color: var(--dropdown-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--dropdown-text) !important;
+}
+
+.Select-value-label {
+    color: var(--dropdown-text) !important;
+}
+
+.Select-menu-outer {
+    background-color: var(--dropdown-bg) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.Select--multi .Select-value {
+    background-color: var(--tag-bg) !important;
+    border: 1px solid var(--tag-border) !important;
+    color: var(--tag-text) !important;
+}
+
+.Select--multi .Select-value-icon {
+    border-right: 1px solid var(--tag-border) !important;
+}
+
+.Select--multi .Select-value-icon:hover {
+    background-color: var(--tag-border) !important;
+    color: var(--heading-color) !important;
+}
+
+.Select-option {
+    background-color: var(--dropdown-bg) !important;
+    color: var(--dropdown-text) !important;
+}
+
+.Select-option.is-focused {
+    background-color: #3d3d3d !important;
+}
+
+.is-open>.Select-control {
+    background-color: var(--dropdown-bg) !important;
+}
+
+.Select-input>input {
+    color: var(--dropdown-text) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+/* Spotify link styling */
+.spotify-link {
+    color: #1DB954;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.spotify-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
