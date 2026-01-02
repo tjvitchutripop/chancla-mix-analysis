@@ -1,3 +1,5 @@
+gunicorn
+flask
 spotipy
 pandas
 python-dotenv
