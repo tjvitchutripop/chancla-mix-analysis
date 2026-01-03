@@ -54,24 +54,17 @@ def main():
     principal_components = pca.fit_transform(data_scaled)
 
     # Create a DataFrame with the PCA results and add back metadata
-    pca_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2', 'PC3'], index=df_clean.index)
+    df_clean['PC1'] = principal_components[:, 0]
+    df_clean['PC2'] = principal_components[:, 1]
+    df_clean['PC3'] = principal_components[:, 2]
     
-    # Add metadata for hover/coloring
-    # We check if Song/Artist exist to use them, otherwise we just use index
+    # Prepare hover data
     hover_data = []
-    if 'Song' in df_clean.columns:
-        pca_df['Song'] = df_clean['Song']
-        hover_data.append('Song')
-    if 'Artist' in df_clean.columns:
-        pca_df['Artist'] = df_clean['Artist']
-        hover_data.append('Artist')
-    if 'Genres' in df_clean.columns:
-        pca_df['Genres'] = df_clean['Genres']
-        hover_data.append('Genres')
-    if 'Contributor' in df_clean.columns:
-        pca_df['Contributor'] = df_clean['Contributor']
-        hover_data.append('Contributor')
-        
+    if 'Song' in df_clean.columns: hover_data.append('Song')
+    if 'Artist' in df_clean.columns: hover_data.append('Artist')
+    if 'Genres' in df_clean.columns: hover_data.append('Genres')
+    if 'Contributor' in df_clean.columns: hover_data.append('Contributor')
+
     # Calculate explained variance
     explained_variance = pca.explained_variance_ratio_
     print(f"Explained Variance Ratio: {explained_variance}")
@@ -79,7 +72,7 @@ def main():
 
     # Visualization using Plotly
     fig = px.scatter_3d(
-        pca_df, 
+        df_clean, 
         x='PC1', 
         y='PC2', 
         z='PC3',
@@ -104,8 +97,12 @@ def main():
     
     # Save PCA data to CSV
     pca_output_csv = 'pca_results.csv'
-    pca_df.to_csv(pca_output_csv, index=False)
+    df_clean.to_csv(pca_output_csv, index=False)
     print(f"PCA results saved to {pca_output_csv}")
+
+    # Save explained variance
+    pd.DataFrame({'ratio': explained_variance}).to_csv('pca_variance.csv', index=False)
+    print("Explained variance ratio saved to pca_variance.csv")
 
 if __name__ == "__main__":
     main()

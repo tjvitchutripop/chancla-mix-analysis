@@ -1,8 +1,6 @@
 import dash
 from dash import dcc, html, Input, Output, State
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 import numpy as np
 import sys
@@ -12,58 +10,22 @@ app = dash.Dash(__name__)
 
 app.title = "Chancla Mix Telescope 🔭"
 
-# --- Data Loading and Processing (Run once on startup) ---
+# --- Data Loading (Pre-calculated) ---
 try:
-    df = pd.read_csv('data_new.csv')
-    # Get duration data type
-
+    df_clean = pd.read_csv('pca_results.csv')
+    explained_variance = pd.read_csv('pca_variance.csv')['ratio'].tolist()
 except FileNotFoundError:
-    print("Error: data_new.csv not found.")
-    df = pd.DataFrame() # Empty frame to prevent immediate crash, though app wont work well
+    print("Error: Pre-calculated PCA data not found. Run 'pca_analysis.py' first.")
+    # Fallback to empty to avoid crashing immediately, though UI will be broken
+    df_clean = pd.DataFrame()
+    explained_variance = [0, 0, 0]
 
-if not df.empty:
-    # Feature mapping
-    feature_mapping = {
-        'BPM': 'BPM',
-        'Energy': 'Energy',
-        'Dance': 'Dance',
-        'Valence': 'Valence',
-        'Acoustic': 'Acoustic',
-        'Instrumental': 'Instrumental',
-        'Speech': 'Speech',
-        'Live': 'Live',
-        'Loudness': 'Loud (Db)',
-        # 'Popularity': 'Popularity'
-    }
-    features = list(feature_mapping.values())
-    
-    # Check for missing features
-    available_features = [f for f in features if f in df.columns]
-    
-    # Drop rows with missing values in the features *or* Contributor/Genres for cleaner plotting
-    df_clean = df.dropna(subset=available_features).copy()
-    
-    # Preprocess: Standardize
-    scaler = StandardScaler()
-    data_scaled = scaler.fit_transform(df_clean[available_features])
-
-    # Run PCA globally so axes don't shift when filtering
-    pca = PCA(n_components=3)
-    principal_components = pca.fit_transform(data_scaled)
-    
-    # Store PCA results back in dataframe
-    df_clean['PC1'] = principal_components[:, 0]
-    df_clean['PC2'] = principal_components[:, 1]
-    df_clean['PC3'] = principal_components[:, 2]
-    
+if not df_clean.empty:
     # Fill NaN genres/contributors for UI safety
     if 'Genres' in df_clean.columns:
         df_clean['Genres'] = df_clean['Genres'].fillna('Unknown')
     if 'Contributor' in df_clean.columns:
         df_clean['Contributor'] = df_clean['Contributor'].fillna('Unknown')
-
-    # Get stats for labels
-    explained_variance = pca.explained_variance_ratio_
 
     # Prepare options for Dropdowns
     if 'Contributor' in df_clean.columns:
@@ -109,10 +71,8 @@ if not df.empty:
 app.layout = html.Div(className='app-container', children=[
     
     html.Div([
-        # Theme/Rotation State
+        # Theme State
         html.Div(id='theme-dummy', style={'display': 'none'}),
-        dcc.Store(id='rotation-active', data=True),
-        dcc.Interval(id='rotation-interval', interval=1, n_intervals=0),
         
         # Controls Column (Sidebar)
         html.Div([
@@ -226,62 +186,6 @@ app.clientside_callback(
     Input('theme-toggle', 'value')
 )
 
-# --- Clientside Callback for Auto-Rotation ---
-app.clientside_callback(
-    """
-    function(n_intervals, is_active, curr_fig) {
-        if (!is_active || !curr_fig || !curr_fig.layout || !curr_fig.layout.scene) {
-            return window.dash_clientside.no_update;
-        }
-        
-        // Ensure scene camera exists
-        if (!curr_fig.layout.scene.camera) {
-            curr_fig.layout.scene.camera = {eye: {x: 1.5, y: 1.5, z: 1.5}};
-        }
-
-        const angle = n_intervals * 0.005; // Very slow rotation
-        const eye = curr_fig.layout.scene.camera.eye;
-        const radius = Math.sqrt(eye.x*eye.x + eye.y*eye.y);
-        
-        // Create a shallow copy and update camera only
-        const new_fig = {...curr_fig};
-        new_fig.layout = {
-            ...curr_fig.layout,
-            scene: {
-                ...curr_fig.layout.scene,
-                camera: {
-                    ...curr_fig.layout.scene.camera,
-                    eye: {
-                        x: radius * Math.cos(angle),
-                        y: radius * Math.sin(angle),
-                        z: eye.z
-                    }
-                }
-            }
-        };
-        return new_fig;
-    }
-    """,
-    Output('pca-3d-graph', 'figure', allow_duplicate=True),
-    Input('rotation-interval', 'n_intervals'),
-    State('rotation-active', 'data'),
-    State('pca-3d-graph', 'figure'),
-    prevent_initial_call=True
-)
-
-# --- Disable Rotation on Interaction ---
-app.clientside_callback(
-    """
-    function(relayoutData) {
-        if (relayoutData && (relayoutData['scene.camera'] || relayoutData['scene.autorange'])) {
-            return false;
-        }
-        return window.dash_clientside.no_update;
-    }
-    """,
-    Output('rotation-active', 'data'),
-    Input('pca-3d-graph', 'relayoutData')
-)
 
 # --- Callbacks ---
 @app.callback(
@@ -297,7 +201,7 @@ def update_graph(selected_contributors, selected_genres, color_col, searched_son
     is_dark = theme_toggle and 'dark' in theme_toggle
     template = 'plotly_dark' if is_dark else 'plotly_white'
     
-    if df.empty:
+    if df_clean.empty:
         return {}, "No data loaded."
         
     # We always use the full clean dataset for plotting to enable "highlighting" instead of "isolating"
@@ -493,7 +397,7 @@ def update_graph(selected_contributors, selected_genres, color_col, searched_son
                                    target="_blank", className='spotify-link')
                         ], style={'fontSize': '14px'}))
                         stats_text.append(html.P([
-                            html.Span("Most Polarizing: ", style={'fontWeight': 'bold', 'color': '#dc3545'}),
+                            html.Span("Most Divergent: ", style={'fontWeight': 'bold', 'color': '#dc3545'}),
                             html.A(f"{c_polarizing['Song']} - {c_polarizing['Artist']}", 
                                    href=f"https://open.spotify.com/track/{c_polarizing['Spotify Track Id']}", 
                                    target="_blank", className='spotify-link')
