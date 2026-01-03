@@ -496,6 +496,32 @@ def update_graph(selected_contributors, selected_genres, color_col, searched_son
                             html.Ol(ranking_items, style={'fontSize': '12px', 'marginTop': '10px', 'paddingLeft': '20px'})
                         ]))
 
+                    # Underground Ranking based on Average Popularity
+                    cont_pop = []
+                    for cont in plot_df['Contributor'].unique():
+                        c_data = plot_df[plot_df['Contributor'] == cont]
+                        if not c_data.empty:
+                            avg_pop = c_data['Popularity'].mean()
+                            cont_pop.append({'cont': cont, 'pop': avg_pop})
+                    
+                    if cont_pop:
+                        # Sort for ranking (Lowest Popularity = Most Underground)
+                        cont_pop.sort(key=lambda x: x['pop'])
+                        
+                        most_underground = cont_pop[0]
+                        
+                        stats_text.append(html.P([
+                            html.Span("Most Underground: ", style={'fontWeight': 'bold'}),
+                            f"{most_underground['cont']} (avg pop: {most_underground['pop']:.1f})"
+                        ]))
+
+                        # Full Ranking Dropdown
+                        underground_ranking_items = [html.Li(f"{cp['cont']} ({cp['pop']:.1f})") for cp in cont_pop]
+                        stats_text.append(html.Details([
+                            html.Summary("Full Ranking of Underground Taste 💎", style={'cursor': 'pointer', 'fontWeight': 'bold', 'marginTop': '5px', 'color': '#6c757d'}),
+                            html.Ol(underground_ranking_items, style={'fontSize': '12px', 'marginTop': '10px', 'paddingLeft': '20px'})
+                        ]))
+
                 # --- Agreeable vs Polarizing Songs ---
                 # Calculate distance of every song to the global centroid
                 g_x = plot_df['PC1'].mean()
