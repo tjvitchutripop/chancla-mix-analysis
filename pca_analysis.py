@@ -53,6 +53,16 @@ def main():
     pca = PCA(n_components=3)
     principal_components = pca.fit_transform(data_scaled)
 
+    # Explain components
+    # Get components (loadings)
+    components = pca.components_
+    print("Principal Components (Loadings):\n", components)
+
+    # Create a DataFrame for better interpretation
+    pc_df = pd.DataFrame(components, columns=features, index=['PC1', 'PC2', 'PC3'])
+    print("\nInterpretable Components:\n", pc_df)
+
+
     # Create a DataFrame with the PCA results and add back metadata
     df_clean['PC1'] = principal_components[:, 0]
     df_clean['PC2'] = principal_components[:, 1]

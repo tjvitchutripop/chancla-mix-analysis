@@ -519,7 +519,7 @@ def update_graph(selected_contributors, selected_genres, color_col, searched_son
                     f" ({agreeable['Contributor']})"
                 ], style={'fontSize': '16px'}))
                 stats_text.append(html.P([
-                    html.Span("Most Polarizing: ", style={'fontWeight': 'bold', 'color': '#dc3545'}),
+                    html.Span("Most Divergent: ", style={'fontWeight': 'bold', 'color': '#dc3545'}),
                     html.A(f"{polarizing['Song']} - {polarizing['Artist']}", 
                            href=f"https://open.spotify.com/track/{polarizing['Spotify Track Id']}", 
                            target="_blank", className='spotify-link'),
